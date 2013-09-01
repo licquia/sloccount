@@ -903,6 +903,9 @@ sub file_type_from_contents() {
  if ($command =~ m/^python[0-9\.]*(\.exe)?$/i) {
     return "python";
  } 
+ if ($command =~ m/^ruby[0-9\.]*(\.exe)?$/i) {
+    return "ruby";
+ } 
  if ($command =~ m/^(tcl|tclsh|bltwish|wish|wishx|WISH)[0-9\.]*(\.exe)?$/i) {
     return "tcl";
  } 
