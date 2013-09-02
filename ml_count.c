@@ -104,7 +104,9 @@ long sloc_count(char *filename, FILE *stream) {
 	 
    case '\\':
      /* Ignore next character if in string.  But don't ignore newlines. */
-     if (in_string && !ispeek('\n', stream))
+     /* Also, eat a " character if it is escaped, so that we don't enter
+      * or exit a string */
+     if ((in_string && !ispeek('\n', stream)) || ispeek('\"', stream))
        getachar(stream);
      break;
    
