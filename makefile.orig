@@ -1,9 +1,27 @@
 # Makefile for SLOCCount.
-# (C) Copyright David A. Wheeler 2000-2002.
-# Licensed under the GPL; see sloccount.html for license information.
+# This is part of SLOCCount, a toolsuite that counts
+# source lines of code (SLOC).
+# Copyright (C) 2001-2004 David A. Wheeler.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# 
+# To contact David A. Wheeler, see his website at:
+#  http://www.dwheeler.com.
+
 # My thanks to John Clezy, who provided the modifications to this makefile
 # to make sloccount work on Windows using Cygwin.
-
 
 # You may need to change the following options to install on your machine:
 
@@ -39,15 +57,15 @@ RPMBUILD=rpmbuild -ba
 # From here on, nothing should need changing unless you're
 # changing the code itself.
 
-# To change the version #, change VERSION here, sloccount.spec, and
-# sloccount.html.
+# To change the version #, change VERSION here, sloccount.spec,
+# sloccount, and sloccount.html.
 # Note to self: to redistribute, do this:
 # make distribute; su; make rpm; (test as desired);
 # rpm -e sloccount; ^D; make my_install; send to web site.
 
 
 NAME=sloccount
-VERSION=2.20
+VERSION=2.26
 RPM_VERSION=1
 ARCH=i386
 VERSIONEDNAME=$(NAME)-$(VERSION)
@@ -63,12 +81,14 @@ COMPILED_EXECUTABLES= \
    lexcount1$(EXE_SUFFIX) \
    pascal_count$(EXE_SUFFIX) \
    php_count$(EXE_SUFFIX) \
-   jsp_count$(EXE_SUFFIX)
+   jsp_count$(EXE_SUFFIX) \
+   ml_count$(EXE_SUFFIX)
 
 EXECUTABLES= \
    ada_count \
    asm_count \
    awk_count \
+   vbasic_count \
    break_filelist \
    cobol_count \
    compute_all \
@@ -78,15 +98,16 @@ EXECUTABLES= \
    csh_count \
    exp_count \
    fortran_count \
+   f90_count \
    generic_count \
    get_sloc \
    get_sloc_details \
    haskell_count \
+   javascript_count \
    lex_count \
    lisp_count \
    make_filelists \
    makefile_count \
-   ml_count \
    modula3_count \
    objc_count \
    perl_count \
@@ -129,6 +150,9 @@ jsp_count.c: jsp_count.l driver.c driver.h
 jsp_count$(EXE_SUFFIX): jsp_count.c
 	$(CC) jsp_count.c -o jsp_count$(EXE_SUFFIX)
 
+ml_count$(EXE_SUFFIX): ml_count.c
+	$(CC) ml_count.c -o ml_count$(EXE_SUFFIX)
+
 sloccount.1.gz: sloccount.1
 	gzip -c sloccount.1 > sloccount.1.gz
 
@@ -147,7 +171,7 @@ install_programs: all
 uninstall_programs:
 	cd $(INSTALL_DIR) && rm -f $(EXECUTABLES)
 
-install_man:
+install_man: $(MANPAGES)
 	$(INSTALL_A_DIR) $(MAN_DIR_MAN1)
 	$(INSTALL) $(MANPAGES) $(MAN_DIR_MAN1)
 
@@ -159,7 +183,7 @@ install_docs: install_man
 	$(INSTALL) $(MYDOCS) $(DOC_DIR)
 
 uninstall_docs:
-	cd $(DOC_DIR) && rm -f $(MYDOCS) && rmdir $(DOC_DIR)
+	rm -fr $(DOC_DIR)
 
 
 install: install_programs install_man install_docs
@@ -205,7 +229,6 @@ my_install: distribute
 	cp -p TODO $(POSTED_DIR)
 	cp -p /usr/src/redhat/RPMS/$(ARCH)/$(VERSIONEDNAME)-$(RPM_VERSION)*.rpm $(POSTED_DIR)
 	cp -p /usr/src/redhat/SRPMS/$(VERSIONEDNAME)-$(RPM_VERSION)*.src.rpm $(POSTED_DIR)
-	
 
 rpm: distribute
 	cp $(VERSIONEDNAME).tar.gz /usr/src/redhat/SOURCES
@@ -219,4 +242,11 @@ rpm: distribute
 	rpm -ivh /usr/src/redhat/RPMS/$(ARCH)/$(VERSIONEDNAME)-$(RPM_VERSION)*.rpm
 	echo "Use rpm -e $(NAME) to remove the package"
 
+test: all
+	@echo "Starting test..."
+	PATH=".:${PATH}" ./sloccount testcode
+	@echo "Ending test."
+
+# Support "make check"
+check: test
 

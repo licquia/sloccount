@@ -120,6 +120,7 @@ EXECUTABLES= \
    sloccount \
    sql_count \
    tcl_count \
+   vbscript_count \
    $(COMPILED_EXECUTABLES)
 
 MANPAGES=sloccount.1.gz

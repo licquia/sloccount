@@ -206,6 +206,7 @@ $noisy = 0;            # Set to 1 if you want noisy reports.
    # ???: .pco is Oracle Cobol
   "jsp" => "jsp",  # Java server pages
   "bas" => "vbasic", "frm" => "vbasic", "cls" => "vbasic", "dsr" => "vbasic",
+  "vbs" => "vbscript", "wsh" => "vbscript",
   "js" => "javascript",
 );
 
