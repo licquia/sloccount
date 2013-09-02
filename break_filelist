@@ -156,6 +156,7 @@ $noisy = 0;            # Set to 1 if you want noisy reports.
   "C" => "cpp", "cpp" => "cpp", "cxx" => "cpp", "cc" => "cpp",
   "pcc" => "cpp", # Input to Oracle C++ preproc.
   "m" => "objc",
+  "mm" => "objc",
   # C# (C-sharp) is named 'cs', not 'c#', because
   # the '#' is a comment character and I'm trying to
   # avoid bug-prone conventions.
