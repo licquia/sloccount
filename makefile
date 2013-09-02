@@ -241,6 +241,8 @@ rpm: distribute
 	echo "Use rpm -e $(NAME) to remove the package"
 
 test: all
-	PATH=.:${PATH}; sloccount testcode
+	@echo "Starting test..."
+	PATH=".:${PATH}" ./sloccount testcode
+	@echo "Ending test."
 
 
