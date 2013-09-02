@@ -245,4 +245,6 @@ test: all
 	PATH=".:${PATH}" ./sloccount testcode
 	@echo "Ending test."
 
+# Support "make check"
+check: test
 
