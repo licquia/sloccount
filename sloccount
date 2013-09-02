@@ -225,15 +225,15 @@ in
   esac
   
   cd $datadir
-  if echo "Categorizing files." &&
+  if echo "Categorizing files." 1>&2 &&
      break_filelist --duplistfile sloc_hashes $duplicate_control $autogen * &&
-     echo "Computing results." &&
+     echo "Computing results." 1>&2 &&
      compute_all *
   then
     display_results=y
   fi
-  echo
-  echo
+  echo 1>&2
+  echo 1>&2
   ;;
 esac
 

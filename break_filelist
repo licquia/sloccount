@@ -724,7 +724,7 @@ sub compute_digest {
    # There doesn't seem to be a way in perl to disable an error message
    # display if the command is missing, which is annoying.  However, the
    # program is more robust if we check for the command each time we run.
-   print "Finding a working MD5 command....\n";
+   print STDERR "Finding a working MD5 command....\n";
    foreach $m ("md5sum", "md5", "openssl") {
      $result = compute_digest_given_method($filename, $m);
      if (defined($result)) {
@@ -735,7 +735,7 @@ sub compute_digest {
    if (!defined($digest_method)) {
      die "Failure - could not find a working md5 program using $filename.";
    }
-   print "Found a working MD5 command.\n";
+   print STDERR "Found a working MD5 command.\n";
  }
  return $result;
 }

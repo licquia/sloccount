@@ -8,9 +8,27 @@
 # uses heuristics to determine this.
 # The list of .h files is also contained in h_list.dat.
 
-# (C) Copyright 2000-2001 David A. Wheeler
-# Part of "SLOCCount", and released under the GPL version 2;
-# see the documentation for details.
+# This is part of SLOCCount, a toolsuite that counts
+# source lines of code (SLOC).
+# Copyright (C) 2001-2004 David A. Wheeler.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# 
+# To contact David A. Wheeler, see his website at:
+#  http://www.dwheeler.com.
+
 
 # If adding a new language: add the logic to open the file,
 # close the file, and detect & write to the file listing that language.
@@ -58,7 +76,7 @@ $noisy = 0;            # Set to 1 if you want noisy reports.
    "bdf" => 1,
    "sgml" => 1,
    "mf" => 1,
-   "txt" => 1,
+   "txt" => 1, "text" => 1,
    "man" => 1,
    "xbm" => 1,
    "Tag" => 1,
@@ -70,7 +88,7 @@ $noisy = 0;            # Set to 1 if you want noisy reports.
    "dic" => 1,
    "pfb" => 1,
    "fig" => 1,
-   "afm" => 1,
+   "afm" => 1,  # font metrics
    "jpg" => 1,
    "bmp" => 1,
    "htm" => 1,
@@ -85,6 +103,18 @@ $noisy = 0;            # Set to 1 if you want noisy reports.
    "o" => 1,    # Object code is generated from source code.
    "a" => 1,    # Static object code.
    "so" => 1,   # Dynamically-loaded object code.
+   "Y" => 1,    # file compressed with "Yabba"
+   "Z" => 1,    # file compressed with "compress"
+   "ad" => 1,   # X application default resource file.
+   "arc" => 1,  # arc(1) archive
+   "arj" => 1,  # arj(1) archive
+   "au" => 1,   # Audio sound filearj(1) archive
+   "wav" => 1,
+   "bak" => 1,  # Backup files - we only want to count the "real" files.
+   "bz2" => 1,  # bzip2(1) compressed file
+   "mp3" => 1,  # zip archive
+   "tgz" => 1,  # tarball
+   "zip" => 1,  # zip archive
 );
 
 # The following filenames are NOT code:
@@ -114,6 +144,10 @@ $noisy = 0;            # Set to 1 if you want noisy reports.
 # A filename ending in the following extensions usually maps to the
 # given language:
 
+# TODO: See suffixes(7)
+# .al Perl autoload file
+# .am automake input
+
 %file_extensions = (
   "c" => "ansic",
   "ec" => "ansic",   # Informix C.
@@ -122,21 +156,36 @@ $noisy = 0;            # Set to 1 if you want noisy reports.
   "C" => "cpp", "cpp" => "cpp", "cxx" => "cpp", "cc" => "cpp",
   "pcc" => "cpp", # Input to Oracle C++ preproc.
   "m" => "objc",
-  "h" => "h", "H" => "h", "hpp" => "h",
+  # C# (C-sharp) is named 'cs', not 'c#', because
+  # the '#' is a comment character and I'm trying to
+  # avoid bug-prone conventions.
+  #  C# doesn't support header files.
+  "cs" => "cs",
+  # Header files are allocated to the "h" language, and then
+  # copied to the correct location later so that C/C++/Objective-C
+  # can be separated.
+  "h" => "h", "H" => "h", "hpp" => "h", "hh" => "h",
   "ada" => "ada", "adb" => "ada", "ads" => "ada",
   "pad" => "ada",     # Oracle Ada preprocessor.
-  "f" => "fortran",
-  "p" => "pascal",
+  "f" => "fortran", "F" => "fortran", # This catches "wokka.F" as Fortran.
+  # Warning: "Freeze" format also uses .f.  Haven't heard of problems,
+  # freeze is extremely rare and even more rare in source code directories.
+  "f77" => "fortran", "F77" => "fortran",
+  "f90" => "f90", "F90" => "f90",
+  "cob" => "cobol", "cbl" => "cobol",
+  "COB" => "cobol", "CBL" => "cobol",  # Yes, people do create wokka.CBL files
+  "p" => "pascal", "pas" => "pascal", "pp" => "pascal", "dpr" => "pascal",
   "py" => "python",
   "s" => "asm", "S" => "asm", "asm" => "asm",
   "sh" => "sh", "bash" => "sh",
   "csh" => "csh", "tcsh" => "csh", 
   "java" => "java",
-  "lisp" => "lisp", "el" => "lisp", "scm" => "lisp", "lsp" => "lisp",
+  "lisp" => "lisp", "el" => "lisp", "scm" => "lisp", "sc" => "lisp", 
+  "lsp" => "lisp", "cl" => "lisp",
   "jl" => "lisp",
   "tcl" => "tcl", "tk" => "tcl", "itk" => "tcl",
   "exp" => "exp",
-  "pl" => "perl", "pm" => "perl", "perl" => "perl",
+  "pl" => "perl", "pm" => "perl", "perl" => "perl", "ph" => "perl",
   "awk" => "awk",
   "sed" => "sed",
   "y" => "yacc",
@@ -146,7 +195,17 @@ $noisy = 0;            # Set to 1 if you want noisy reports.
   "php" => "php", "php3" => "php", "php4" => "php", "php5" => "php",
   "php6" => "php",
   "inc" => "inc", # inc MAY be PHP - we'll handle it specially.
-   # ???: .pco is Oracle Cobol, need to add with a Cobol counter.
+  "m3" => "modula3", "i3" => "modula3",
+  "mg" => "modula3", "ig" => "modula3",
+  "ml" => "ml", "mli" => "ml",
+  "mly" => "ml", # ocamlyacc. In fact this is half-yacc half-ML, especially
+  		 # comments in yacc part are C-like, not ML like.
+  "mll" => "ml", # ocamllex, no such problems as in ocamlyacc
+  "rb" => "ruby",
+  "hs" => "haskell", "lhs" => "haskell",
+   # ???: .pco is Oracle Cobol
+  "jsp" => "jsp",  # Java server pages
+  "js" => "javascript",
 );
 
 
@@ -184,7 +243,7 @@ sub reopen {
    seek CODE_FILE, 0, 0;  # Rewind.
  } else {   # We're opening a new file.
    if ($opened_file_name) {close(CODE_FILE)}
-   open(CODE_FILE, "<$filename") || die "Can't open $filename";
+   open(CODE_FILE, "<$filename\0") || die "Can't open $filename";
    $opened_file_name = $filename;
  }
 }
@@ -197,7 +256,7 @@ sub looks_like_cpp {
  my $confidence = 0;
  chomp($filename);
  open( SUSPECT, "<$filename");
- while (<SUSPECT>) {
+ while (defined($_ = <SUSPECT>)) {
     if (m/^\s*class\b.*\{/) {  # "}"
        close(SUSPECT);
        return 2;
@@ -385,18 +444,33 @@ sub really_is_pascal {
  my $filename = shift;
  chomp($filename);
 
-# The heuristic is as follows: it's Pascal _IF_ it has all of the following:
-# 1. "^..program NAME(...);" or "..unit NAME".
-# 2. "procedure", "function", "^..interface", or "^..implementation"
+# The heuristic is as follows: it's Pascal _IF_ it has all of the following
+# (ignoring {...} and (*...*) comments):
+# 1. "^..program NAME" or "^..unit NAME",
+# 2. "procedure", "function", "^..interface", or "^..implementation",
 # 3. a "begin", and
-# 4. it ends with "end." (ignoring {...} comments).
-# The last requirement in particular filters out non-Pascal.
-
+# 4. it ends with "end.",
+#
+# Or it has all of the following:
+# 1. "^..module NAME" and
+# 2. it ends with "end.".
+#
+# Or it has all of the following:
+# 1. "^..program NAME",
+# 2. a "begin", and
+# 3. it ends with "end.".
+#
+# The "end." requirements in particular filter out non-Pascal.
+#
+# Note (jgb): this does not detect Pascal main files in fpc, like
+# fpc-1.0.4/api/test/testterminfo.pas, which does not have "program" in
+# it
 
  my $is_pascal = 0;      # Value to determine.
 
  my $has_program = 0;
  my $has_unit = 0;
+ my $has_module = 0;
  my $has_procedure_or_function = 0;
  my $found_begin = 0;
  my $found_terminating_end = 0;
@@ -407,30 +481,84 @@ sub really_is_pascal {
  open(PASCAL_FILE, "<$filename") ||
       die "Can't open $filename to determine if it's pascal.\n";
  while(<PASCAL_FILE>) {
+   s/\{.*?\}//g;  # Ignore {...} comments on this line; imperfect, but effective.
+   s/\(\*.*?\*\)//g;  # Ignore (*...*) comments on this line; imperfect, but effective.
    if (m/\bprogram\s+[A-Za-z]/i)  {$has_program=1;}
    if (m/\bunit\s+[A-Za-z]/i)     {$has_unit=1;}
+   if (m/\bmodule\s+[A-Za-z]/i)   {$has_module=1;}
    if (m/\bprocedure\b/i)         { $has_procedure_or_function = 1; }
    if (m/\bfunction\b/i)          { $has_procedure_or_function = 1; }
    if (m/^\s*interface\s+/i)      { $has_procedure_or_function = 1; }
    if (m/^\s*implementation\s+/i) { $has_procedure_or_function = 1; }
    if (m/\bbegin\b/i) { $has_begin = 1; }
-   s/\{.*?\}//g;  # Ignore comments on this line; imperfect, but effective.
-   # This heuristic fails if there are multi-line comments after
-   # "end."; I haven't seen that in real Pascal programs:
+   # Originally I said:
+   # "This heuristic fails if there are multi-line comments after
+   # "end."; I haven't seen that in real Pascal programs:"
+   # But jgb found there are a good quantity of them in Debian, specially in 
+   # fpc (at the end of a lot of files there is a multiline comment
+   # with the changelog for the file).
+   # Therefore, assume Pascal if "end." appears anywhere in the file.
    if (m/end\.\s*$/i) {$found_terminating_end = 1;}
-   elsif (m/\S/) {$found_terminating_end = 0;}
+#   elsif (m/\S/) {$found_terminating_end = 0;}
  }
  close(PASCAL_FILE);
 
  # Okay, we've examined the entire file looking for clues;
  # let's use those clues to determine if it's really Pascal:
 
- if ( ($has_unit || $has_program) && $has_procedure_or_function &&
-     $has_begin && $found_terminating_end)
+ if ( ( ($has_unit || $has_program) && $has_procedure_or_function &&
+     $has_begin && $found_terminating_end ) ||
+      ( $has_module && $found_terminating_end ) ||
+      ( $has_program && $has_begin && $found_terminating_end ) )
           {$is_pascal = 1;}
 
  $pascal_files{$filename} = $is_pascal; # Store result in cache.
 
+ return $is_pascal;
+}
+
+sub really_is_incpascal {
+# Given filename, returns TRUE if its contents really are Pascal.
+# For .inc files (mainly seen in fpc)
+
+ my $filename = shift;
+ chomp($filename);
+
+# The heuristic is as follows: it is Pacal if any of the following:
+# 1. really_is_pascal returns true
+# 2. Any usual reserverd word is found (program, unit, const, begin...)
+
+ # If the general routine for Pascal files works, we have it
+ if (&really_is_pascal ($filename)) { 
+   $pascal_files{$filename} = 1;
+   return 1;
+ }
+
+ my $is_pascal = 0;      # Value to determine.
+ my $found_begin = 0;
+
+ open(PASCAL_FILE, "<$filename") ||
+      die "Can't open $filename to determine if it's pascal.\n";
+ while(<PASCAL_FILE>) {
+   s/\{.*?\}//g;  # Ignore {...} comments on this line; imperfect, but effective.
+   s/\(\*.*?\*\)//g;  # Ignore (*...*) comments on this line; imperfect, but effective.
+   if (m/\bprogram\s+[A-Za-z]/i)  {$is_pascal=1;}
+   if (m/\bunit\s+[A-Za-z]/i)     {$is_pascal=1;}
+   if (m/\bmodule\s+[A-Za-z]/i)   {$is_pascal=1;}
+   if (m/\bprocedure\b/i)         {$is_pascal = 1; }
+   if (m/\bfunction\b/i)          {$is_pascal = 1; }
+   if (m/^\s*interface\s+/i)      {$is_pascal = 1; }
+   if (m/^\s*implementation\s+/i) {$is_pascal = 1; }
+   if (m/\bconstant\s+/i)         {$is_pascal=1;}
+   if (m/\bbegin\b/i) { $found_begin = 1; }
+   if ((m/end\.\s*$/i) && ($found_begin = 1)) {$is_pascal = 1;}
+   if ($is_pascal) {
+     last;
+   }
+ }
+
+ close(PASCAL_FILE);
+ $pascal_files{$filename} = $is_pascal; # Store result in cache.
  return $is_pascal;
 }
 
@@ -490,7 +618,7 @@ sub examine_dir {
  my $saw_cpp_in_dir = 0;
  my $saw_objc_in_dir = 0;
  opendir(DIR, $dirname) || die "can't opendir $dirname";
- while ($_ = readdir(DIR)) {
+ while (defined($_ = readdir(DIR))) {
    chomp;
    next if (!$_);
    if (m/\.(cpp|C|cxx|cc)$/ && -f "$dirname/$_") {$saw_cpp_in_dir = 1;}
@@ -515,8 +643,8 @@ sub examine_dir {
 
 sub was_generated_automatically() {
  # Determine if the file was generated automatically.
- # Use a simple heuristic: check if first few lines have the
- # phrase "generated automatically", or "automatically generated",
+ # Use a simple heuristic: check if first few lines have phrases like
+ # "generated automatically", "automatically generated", "Generated by",
  # or "do not edit" as the first
  # words in the line (after possible comment markers and spaces).
  my $filename = shift;
@@ -526,9 +654,11 @@ sub was_generated_automatically() {
  chomp($filename);
  reopen($filename);
  $i = 15;  # Look at first 15 lines.
- while (<CODE_FILE>) {
+ while (defined($_ = <CODE_FILE>)) {
    if (m/^[\s#\/\*;\-\%]*generated automatically/i ||
        m/^[\s#\/\*;\-\%]*automatically generated/i ||
+       m/^[\s#\/\*;\-\%]*generated by /i || # libtool uses this.
+       m/^[\s#\/\*;\-\%]*a lexical scanner generated by flex/i ||
        m/^[\s#\/\*;\-\%]*this is a generated file/i ||     # TeTex uses this.
        m/^[\s#\/\*;\-\%]*generated with the.*utility/i ||  # TeTex uses this.
        m/^[\s#\/\*;\-\%]*do not edit/i) {
@@ -548,22 +678,82 @@ sub was_generated_automatically() {
 $cached_digest = "";
 $cached_digest_filename = "";
 
+$digest_method = undef;
+
+sub compute_digest_given_method {
+ my $filename = shift;
+ my $method = shift;
+ my $result;
+
+ if ($method eq "md5sum") {
+   open(FH, "-|", "md5sum", $filename) or return undef;
+   $result = <FH>;
+   close FH;
+   return undef if ! defined($result);
+   chomp($result);
+   $result =~ s/^\s*//;  # Not needed for GNU Textutils.
+   $result =~ s/[^a-fA-F0-9].*//; # Strip away end.
+ } elsif ($method eq "md5") {
+   open(FH, "-|", "md5", $filename) or return undef;
+   $result = <FH>;
+   close FH;
+   return undef if ! defined($result);
+   chomp($result);
+   $result =~ s/^.* //; # Strip away beginning.
+ } elsif ($method eq "openssl") {
+   open(FH, "-|", "openssl", "dgst", "-md5", $filename) or return undef;
+   $result = <FH>;
+   close FH;
+   return undef if ! defined($result);
+   chomp($result);
+   $result =~ s/^.* //; # Strip away beginning.
+ } else {
+   # "Can't happen"
+   die "Unknown method";
+ }
+ return $result;
+}
+
+sub compute_digest {
+ my $filename = shift;
+ my $result;
+ if (defined($digest_method)) {
+   $result = compute_digest_given_method($filename, $digest_method);
+ } else {
+   # Try each method in turn until one works.
+   # There doesn't seem to be a way in perl to disable an error message
+   # display if the command is missing, which is annoying.  However, the
+   # program is more robust if we check for the command each time we run.
+   print "Finding a working MD5 command....\n";
+   foreach $m ("md5sum", "md5", "openssl") {
+     $result = compute_digest_given_method($filename, $m);
+     if (defined($result)) {
+       $digest_method = $m;
+       last;
+     }
+   }
+   if (!defined($digest_method)) {
+     die "Failure - could not find a working md5 program using $filename.";
+   }
+   print "Found a working MD5 command.\n";
+ }
+ return $result;
+}
+
 sub get_digest {
  my $filename = shift;
+ my $result;
  # First, check the cache -- did we just compute this?
  if ($filename eq $cached_digest_filename) {
    return $cached_digest;  # We did, so here's what it was.
  }
 
- my $results = `md5sum "$filename"`;
- chomp($results);
- $results =~ s/^\s*//;  # Not needed for GNU Textutils.
- $results =~ s/[^a-fA-F0-9].*//; # Strip away end.
- $cached_digest = $results;           # Store in cache.
+ $result = compute_digest($filename);
+ # Store in most-recently-used cache.
+ $cached_digest = $result;
  $cached_digest_filename = $filename;
- return $results;
+ return $result;
 }
-
 
 sub already_added {
  # returns the first file's name with the same contents,
@@ -678,43 +868,53 @@ sub file_type_from_contents() {
  # what I'd missed.
 
  $command = "";
- if ($firstline =~ m@^#!\s*/(usr/)?bin/env\s+([a-zA-Z0-9\._]+)(\s|\Z)@) {
+
+ # Strip out any calls to sudo
+ if ($firstline =~ m@^#!\s*/(usr/)?bin/sudo\s+(/.*)@)  {
+   $firstline = "#!" . $2;
+ }
+
+ if ($firstline =~ m@^#!\s*/(usr/)?bin/env\s+([a-zA-Z0-9\._]+)(\s|\Z)@i) {
   $command = $2;
- } elsif ($firstline =~ m@^#!\s*([a-zA-Z0-9\/\.]+\/)?([a-zA-Z0-9\._]+)(\s|\Z)@) {
+ } elsif ($firstline =~ m@^#!\s*([a-zA-Z0-9\/\.]+\/)?([a-zA-Z0-9\._]+)(\s|\Z)@)  {
   $command = $2;
  }
 
- if ( ($command =~ m/^(bash|ksh|zsh|pdksh|sh)[0-9\.]*(\.exe)?$/) ||
+ if ( ($command =~ m/^(bash|ksh|zsh|pdksh|sh)[0-9\.]*(\.exe)?$/i) ||
      ($firstline =~
           m~^#!\s*\@_?(SCRIPT_)?(PATH_)?(BA|K)?SH(ELL)?(\d+)?\@?(\s|\Z)~)) {
     # Note: wish(1) uses a funny trick; see wish(1) for more info.
     # The following code detects this unusual wish convention.
-    if ($firstline =~ m@exec wish(\s|\Z)@) {
+    if ($firstline =~ m@exec wish(\s|\Z)@i) {
       return "tcl"; # return the type for wish.
     }
     # Otherwise, it's shell.
     return "sh";
  }
- if ( ($command =~ m/^(t?csh\d*)[0-9\.]*(\.exe)?$/) ||
+ if ( ($command =~ m/^(t?csh\d*)[0-9\.]*(\.exe)?$/i) ||
       ($firstline =~ m@^#!\s*xCSH_PATHx(\s|\Z)@)) {
     return "csh";
  } 
- if ( ($command =~ m/^(mini)?perl[0-9\.]*(\.exe)?$/) ||
+ if ( ($command =~ m/^(mini)?perl[0-9\.]*(\.exe)?$/i) ||
+      ($command =~ m/^speedycgi[0-9\.]*(\.exe)?$/i) ||
       ($firstline =~ m~^#!\s*\@_?(PATH_)?PERL\d*(PROG)?\@(\s|\Z)~)  ||
       ($firstline =~ m~^#!\s*xPERL_PATHx(\s|\Z)~)) {
     return "perl";
  } 
- if ($command =~ m/^python[0-9\.]*(\.exe)?$/) {
+ if ($command =~ m/^python[0-9\.]*(\.exe)?$/i) {
     return "python";
  } 
- if ($command =~ m/^(tcl|tclsh|bltwish|wish|wishx|WISH)[0-9\.]*(\.exe)?$/) {
+ if ($command =~ m/^ruby[0-9\.]*(\.exe)?$/i) {
+    return "ruby";
+ } 
+ if ($command =~ m/^(tcl|tclsh|bltwish|wish|wishx|WISH)[0-9\.]*(\.exe)?$/i) {
     return "tcl";
  } 
- if ($command =~ m/^expectk?[0-9\.]*(\.exe)?$/) { return "exp"; } 
- if ($command =~ m/^[ng]?awk[0-9\.]*(\.exe)?$/) { return "awk"; } 
- if ($command =~ m/^sed$/) { return "sed"; } 
- if ($command =~ m/^guile[0-9\.]*$/) { return "lisp"; } 
- if ($firstline =~ m@^#!.*make\b@) {  # We'll claim that #! make is a makefile.
+ if ($command =~ m/^expectk?[0-9\.]*(\.exe)?$/i) { return "exp"; } 
+ if ($command =~ m/^[ng]?awk[0-9\.]*(\.exe)?$/i) { return "awk"; } 
+ if ($command =~ m/^sed$/i) { return "sed"; } 
+ if ($command =~ m/^guile[0-9\.]*$/i) { return "lisp"; } 
+ if ($firstline =~ m@^#!.*make\b@i) {  # We'll claim that #! make is a makefile.
     return "makefile";
  } 
  if ($firstline =~ m@^#!\s*\.(\s|\Z)@) {  # Lonely period.
@@ -747,7 +947,7 @@ sub file_type_from_contents() {
 sub get_file_type {
    my $file_to_examine = shift;
    # Return the given file's type.
-   # It looks at the contents, then the filename, then file extension.
+   # Consider the file's contents, filename, and file extension.
 
    $warning_from_first_line = "";
 
@@ -816,13 +1016,27 @@ sub get_file_type {
    # Use filename to determine if it's a makefile:
    if (($file_to_examine =~ m/\bmakefile$/i) ||
         ($file_to_examine =~ m/\bmakefile\.txt$/i) ||
-        ($file_to_examine =~ m/\bmakefile\.pc$/i)) {
+        ($file_to_examine =~ m/\bmakefile\.pc$/i) ||
+        ($file_to_examine =~ m/\bdebian\/rules$/i)) {  # "debian/rules" too.
       return "makefile";
    }
 
    # Try to use filename extension to determine type:
    if ($file_to_examine =~ m/\.([^.\/]+)$/) {
       $type = $1;
+
+      # More ugly problems: some source filenames only use
+      # UPPERCASE, and they can be mixed with regular files.
+      # Since normally filenames are lowercase or mixed case,
+      # presume that an all-uppercase filename means we have to assume
+      # that the extension must be lowercased.  This particularly affects
+      # .C, which usually means C++ but in this case would mean plain C.
+      my $uppercase_filename = 0;
+      if (($file_to_examine =~ m/[A-Z]/) &&
+          (! ($file_to_examine =~ m/[a-z]/))) {
+        $uppercase_filename = 1;
+        $type = lc($type);  # Use lowercase version of type.
+      }
 
       # Is this type known to NOT be a program?
       if ($not_code_extensions{$type}) {
@@ -834,21 +1048,23 @@ sub get_file_type {
       # pine4.21/pine/makefile.hpp and pine4.21/pico/makefile.hpp
       # Note that pine also includes pine4.21/pine/osdep/diskquot.hpp.
       # Kaffe uses .hpp for C++ header files.
-      if (($type eq "hpp") && ($file_to_examine =~ m/makefile\.hpp$/))
+      if (($type eq "hpp") && ($file_to_examine =~ m/makefile\.hpp$/i))
             {return "makefile";}
 
       # If it's a C file but there's a ".pc" or ".pgc" file, then presume that
       # it was automatically generated:
       if ($type eq "c") {
         $pc_name = $file_to_examine;
-        $pc_name =~ s/\.c$/\.pc/;
+        if ($uppercase_filename) { $pc_name =~ s/\.C$/\.PC/; }
+        else                     { $pc_name =~ s/\.c$/\.pc/; }
         if (-s "$pc_name" ) {
           print "Note: Auto-generated C file (from .pc file) $file_to_examine\n"
               if $noisy;
           return "auto";
         }
         $pc_name = $file_to_examine;
-        $pc_name =~ s/\.c$/\.pgc/;
+        if ($uppercase_filename) { $pc_name =~ s/\.C$/\.PGC/; }
+        else                     { $pc_name =~ s/\.c$/\.pgc/; }
         if (-s "$pc_name" ) {
           print "Note: Auto-generated C file (from .pgc file) $file_to_examine\n"
               if $noisy;
@@ -875,10 +1091,17 @@ sub get_file_type {
              (($type eq "tk") && (!&really_is_expect($file_to_examine))) ||
              (($type eq "objc") && (!&really_is_objc($file_to_examine))) ||
              (($type eq "lex") && (!&really_is_lex($file_to_examine))) ||
-             (($type eq "pascal") && (!&really_is_pascal($file_to_examine))) ||
-             (($type eq "inc") && (!&really_is_php($file_to_examine))))
-              {$type = "unknown";}
-        if ($type eq "inc") {  $type = "php"; }; # Hey, the .inc is PHP!
+             (($type eq "pascal") && (!&really_is_pascal($file_to_examine)))) {
+	  $type = "unknown";
+	} elsif ($type eq "inc") {
+	  if (&really_is_php($file_to_examine)) {
+	    $type = "php";  # Hey, the .inc is PHP!
+	  } elsif (&really_is_incpascal($file_to_examine)) {
+	    $type = "pascal";
+	  } else {
+	    $type = "unknown";
+	  }
+	};
         return $type;
       }
 
@@ -914,17 +1137,17 @@ sub convert_h_files {
 
  if ($saw_ansic && (!$saw_cpp) && (!$saw_objc)) {
      # Only C, let's assume .h files are too
-    while (<H_LIST>) { chomp; force_record_file_type($_, "c"); };
+    while (defined($_ = <H_LIST>)) { chomp; force_record_file_type($_, "c"); };
  } elsif ($saw_cpp && (!$saw_ansic) && (!$saw_objc)) {  # Only C++
-    while (<H_LIST>) { chomp; force_record_file_type($_, "cpp"); };
+    while (defined($_ = <H_LIST>)) { chomp; force_record_file_type($_, "cpp"); };
  } elsif ($saw_objc && (!$saw_ansic) && (!$saw_cpp)) {  # Only Obj-C
-    while (<H_LIST>) { chomp; force_record_file_type($_, "objc"); };
+    while (defined($_ = <H_LIST>)) { chomp; force_record_file_type($_, "objc"); };
  } else {
    # Ugh, we have a mixture. Let's try to determine what we have, using
    # various heuristics (looking for a matching name in the directory,
    # reading the file contents, the contents in the directory, etc.)
    # When all else fails, assume C.
-   while (<H_LIST>) {
+   while (defined($_=<H_LIST>)) {
       chomp;
       next if (!$_);
       # print "DEBUG: H file $_\n";
@@ -1002,7 +1225,7 @@ if ($#ARGV < 0) {
 if ($duplistfile) {
  if (-e $duplistfile) {
    open(DUPLIST, "<$duplistfile") || die "Can't open $duplistfile";
-   while (<DUPLIST>) {
+   while (defined($_ = <DUPLIST>)) {
      chomp;
      ($digest, $filename) = split(/ /, $_, 2);
      if (defined($digest) && defined($filename)) {
@@ -1051,10 +1274,15 @@ while ( $dir = shift ) {
 
  $dup_count = 0;
  
- while (<FILELIST>) {
+ while (defined($_ = <FILELIST>)) {
    chomp;
    $file = $_;
    next if (!defined($file) || ($file eq ""));
+   if ($file =~ m/\n/) {
+     print STDERR "WARNING! File name contains embedded newline; it'll be IGNORED.\n";
+     print STDERR "Filename is: $file\n";
+     next;
+   }
    $file_type = &get_file_type($file);
    if ($file_type) {
      &record_file_type($file, $file_type);

@@ -535,10 +535,9 @@ if ($computing_sloc) {
 print "Total Number of Files = $grand_total_sloc\n";
 print "Total Number of Source Code Files = $grand_total_lang_sloc\n";
 }
-print "SLOCCount, Copyright (C) 2001-2004 David A. Wheeler\n";
-print "SLOCCount is Open Source Software/Free Software, licensed under the GNU GPL.\n";
-print "SLOCCount comes with ABSOLUTELY NO WARRANTY, and you are welcome to\n";
-print "redistribute it under certain conditions as specified by the GNU GPL license;\n";
-print "see the documentation for details.\n";
-print "Please credit this data as \"generated using David A. Wheeler's 'SLOCCount'.\"\n";
-
+print STDERR "SLOCCount, Copyright (C) 2001-2004 David A. Wheeler\n";
+print STDERR "SLOCCount is Open Source Software/Free Software, licensed under the GNU GPL.\n";
+print STDERR "SLOCCount comes with ABSOLUTELY NO WARRANTY, and you are welcome to\n";
+print STDERR "redistribute it under certain conditions as specified by the GNU GPL license;\n";
+print STDERR "see the documentation for details.\n";
+print STDERR "Please credit this data as \"generated using David A. Wheeler's 'SLOCCount'.\"\n";

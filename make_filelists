@@ -130,7 +130,7 @@ do
     mkdir "$childname"
   fi
 
-  echo "Creating filelist for $childname"
+  echo "Creating filelist for $childname" 1>&2
   find "$dir" $follow -type f -print > "${childname}/filelist"
 
   # If it exists, copy the PROGRAM_LICENSE.
