@@ -208,6 +208,9 @@ $noisy = 0;            # Set to 1 if you want noisy reports.
   "bas" => "vbasic", "frm" => "vbasic", "cls" => "vbasic", "dsr" => "vbasic",
   "vbs" => "vbscript", "wsh" => "vbscript",
   "js" => "javascript",
+  "ahk" => "autohotkey",
+  "au3" => "autoit",
+  # Add more files here
 );
 
 

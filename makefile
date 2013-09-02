@@ -88,6 +88,8 @@ EXECUTABLES= \
    ada_count \
    asm_count \
    awk_count \
+   autohotkey_count \
+   autoit_count \
    vbasic_count \
    break_filelist \
    cobol_count \
