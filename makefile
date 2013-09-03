@@ -90,7 +90,7 @@ EXECUTABLES= \
    awk_count \
    autohotkey_count \
    autoit_count \
-   vbasic_count \
+   batch_count \
    break_filelist \
    cobol_count \
    compute_all \
@@ -122,6 +122,7 @@ EXECUTABLES= \
    sloccount \
    sql_count \
    tcl_count \
+   vbasic_count \
    vbscript_count \
    $(COMPILED_EXECUTABLES)
 

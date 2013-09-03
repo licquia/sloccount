@@ -211,6 +211,7 @@ $noisy = 0;            # Set to 1 if you want noisy reports.
   "js" => "javascript",
   "ahk" => "autohotkey",
   "au3" => "autoit",
+  "bat" => "batch", "cmd" => "batch",
   # Add more files here
 );
 
