@@ -105,6 +105,7 @@ EXECUTABLES= \
    get_sloc \
    get_sloc_details \
    haskell_count \
+   innosetup_count \
    javascript_count \
    lex_count \
    lisp_count \
