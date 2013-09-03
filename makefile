@@ -253,7 +253,7 @@ rpm: distribute
 
 test: all
 	@echo "Starting test..."
-	PATH=".:${PATH}" ./sloccount testcode
+	PATH="${PWD}:${PATH}" ./sloccount testcode
 	@echo "Ending test."
 
 # Support "make check"
