@@ -81,6 +81,7 @@ COMPILED_EXECUTABLES= \
    lexcount1$(EXE_SUFFIX) \
    pascal_count$(EXE_SUFFIX) \
    php_count$(EXE_SUFFIX) \
+   pig_count$(EXE_SUFFIX) \
    jsp_count$(EXE_SUFFIX) \
    ml_count$(EXE_SUFFIX)
 
@@ -142,6 +143,9 @@ c_count$(EXE_SUFFIX): c_count.c
 
 php_count$(EXE_SUFFIX): php_count.c
 	$(CC) php_count.c -o php_count$(EXE_SUFFIX)
+
+pig_count$(EXE_SUFFIX): php_count.c
+	$(CC) pig_count.c -o pig_count$(EXE_SUFFIX)
 
 pascal_count.c: pascal_count.l driver.c driver.h
 	flex -Cfe -t pascal_count.l > pascal_count.c

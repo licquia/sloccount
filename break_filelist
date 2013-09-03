@@ -176,6 +176,7 @@ $noisy = 0;            # Set to 1 if you want noisy reports.
   "cob" => "cobol", "cbl" => "cobol",
   "COB" => "cobol", "CBL" => "cobol",  # Yes, people do create wokka.CBL files
   "p" => "pascal", "pas" => "pascal", "pp" => "pascal", "dpr" => "pascal",
+  "pig" => "pig", "piglet" => "pig",
   "py" => "python",
   "s" => "asm", "S" => "asm", "asm" => "asm",
   "sh" => "sh", "bash" => "sh",
@@ -611,6 +612,50 @@ sub really_is_php {
 }
 
 
+# Cache which files are pig or not.
+# Key is the full file pathname; value is 1 if it is (else 0).
+%pig_files = ();
+
+sub really_is_pig {
+# Given filename, returns TRUE if its contents really is pig.
+
+ my $filename = shift;
+ chomp($filename);
+
+ my $is_pig = 0;      # Value to determine.
+ # Need to find a FOREACH, LOAD or DUMP, and a semicolon
+
+ # Return cached result, if available:
+ if ($pig_files{$filename}) { return $pig_files{$filename}; }
+
+ open(PIG_FILE, "<$filename") ||
+      die "Can't open $filename to determine if it's pig.\n";
+ while(<PIG_FILE>) {
+   # most Pig opterations need a terminating semicolon and equals
+   # signs to define a relation 
+   if (m/;/i)    { $script_semicolon |= 1; }
+   if (m/=/i)    { $script_equals |= 1; }
+   # all FOREACH's need a GENERATE
+   if (m/FOREACH/i)  { $script_foreach |= 1; }
+   if (m/GENERATE/i)  { $script_foreach |= 2; }
+   # all LOAD's & DUMP's need a USING
+   if (m/(LOAD|DUMP)/i)  { $script_input_output |= 1; }
+   if (m/USING/i)  { $script_input_output |= 2; }
+   # all JOIN's, GROUP's & FILTER's need a BY
+   if (m/(JOIN|GROUP|FILTER)/i)  { $script_dataset |= 1; }
+   if (m/BY/i)  { $script_dataset |= 2; }
+ }
+ close(PIG_FILE);
+
+ if ( ($script_semicolon == 1 && $script_equals == 1 && ($script_foreach == 3 ||
+       &script_dataset == 3 || $script_input_output == 3) ) {
+   $is_pig = 1;
+ }
+
+ $pig_files{$filename} = $is_pig; # Store result in cache.
+
+ return $is_pig;
+}
 
 sub examine_dir {
  # Given a file, determine if there are only C++, OBJC, C, or a mixture
@@ -913,6 +958,9 @@ sub file_type_from_contents() {
  } 
  if ($command =~ m/^ruby[0-9\.]*(\.exe)?$/i) {
     return "ruby";
+ } 
+ if ($command =~ m/^pig[0-9-\.]*/) {
+    return "pig";
  } 
  if ($command =~ m/^(tcl|tclsh|bltwish|wish|wishx|WISH)[0-9\.]*(\.exe)?$/i) {
     return "tcl";
