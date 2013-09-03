@@ -647,8 +647,8 @@ sub really_is_pig {
  }
  close(PIG_FILE);
 
- if ( ($script_semicolon == 1 && $script_equals == 1 && ($script_foreach == 3 ||
-       &script_dataset == 3 || $script_input_output == 3) ) {
+ if ( $script_semicolon == 1 && $script_equals == 1 && ($script_foreach == 3 ||
+      $script_dataset == 3 || $script_input_output == 3) ) {
    $is_pig = 1;
  }
 
