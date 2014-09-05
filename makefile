@@ -128,6 +128,10 @@ EXECUTABLES= \
    vbscript_count \
    $(COMPILED_EXECUTABLES)
 
+
+# Generated below by flex; we need to know these so "make clean" works.
+GENERATED_SOURCE=pascal_count.c jsp_count.c
+
 MANPAGES=sloccount.1.gz
 
 MYDOCS=sloccount.html README TODO ChangeLog
@@ -201,7 +205,7 @@ uninstall: uninstall_programs uninstall_docs uninstall_man
 
 
 clean:
-	-rm -f $(COMPILED_EXECUTABLES) core sloccount.1.gz
+	-rm -f $(COMPILED_EXECUTABLES) $(GENERATED_SOURCE) core sloccount.1.gz
 
 phptest: php_count
 	./php_count *.php
