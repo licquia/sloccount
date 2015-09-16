@@ -1,0 +1,124 @@
+#!/usr/bin/perl -w
+# golang_count - count physical lines of code in Go programs.
+# Usage: golang_count [-f file] [list_of_files]
+#  file: file with a list of files to count (if "-", read list from stdin)
+#  list_of_files: list of files to count
+#  -f file or list_of_files can be used, or both
+# This is a trivial/naive program.
+
+# Go programs are treated like C files, with the additional
+# requirement that raw string literals (backtick strings) must be
+# condensed to a single line first.
+
+# This is part of SLOCCount, a toolsuite that counts
+# source lines of code (SLOC).
+# Copyright (C) 2001-2004 David A. Wheeler.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# 
+# To contact David A. Wheeler, see his website at:
+#  http://www.dwheeler.com.
+# 
+# 
+
+# Code contributed by Jeff Licquia <licquia@linuxfoundation.org>,
+# based on python_count.
+
+use FileHandle;
+use IPC::Open2;
+
+$total_sloc = 0;
+
+# Do we have "-f" (read list of files from second argument)?
+if (($#ARGV >= 1) && ($ARGV[0] eq "-f")) {
+  # Yes, we have -f
+  if ($ARGV[1] eq "-") {
+    # The list of files is in STDIN
+    while (<STDIN>) {
+      chomp ($_);
+      &count_file ($_);
+    }
+  } else {
+    # The list of files is in the file $ARGV[1]
+    open (FILEWITHLIST, $ARGV[1]) || die "Error: Could not open $ARGV[1]\n";
+    while (<FILEWITHLIST>) {
+      chomp ($_);
+      &count_file ($_);
+    }
+    close FILEWITHLIST;
+  }
+  shift @ARGV; shift @ARGV;
+}
+# Process all (remaining) arguments as file names
+while ($file = shift @ARGV) {
+  &count_file ($file);
+}
+
+print "Total:\n";
+print "$total_sloc\n";
+
+sub count_file {
+  my ($file) = @_;
+  my $isinbacktick = 0;
+  my $isincomment = 0;
+  my $ccount_pid = open2 (*CCOUNT_READ, *CCOUNT_WRITE, "c_count");
+  my $ccount_result = "";
+
+  open (FILE, $file);
+  while (<FILE>) {
+    my $reprocess = 0;
+    do {
+      $reprocess = 0;
+      if (! $isinbacktick) {
+	s/\/\/.*//;
+	s/\/\*.*?\*\///g;
+	s/\`.*\`//;
+	if (m/\/\*/) {
+	  s/\/\*.*/\/*/;
+	} elsif ((m/\*\//) && ($isincomment)) {
+	  s/.*?\*\//*\//;
+	  $isincomment = 0;
+	}
+	if (m/\`/) {
+	  $isinbacktick = 1;
+	  s/\'.*//;
+	}
+	if ((m/\*\//) && (! $isincomment) && (! $isinbacktick)) {
+	    $isincomment = 1;
+	}
+	print CCOUNT_WRITE $_;
+      } else {
+	if (m/\`/) {
+	  s/.*?\`//;
+	  $isinbacktick = 0;
+	  $reprocess = 1;
+	}
+      }
+    } while ($reprocess);
+  }
+
+  close (CCOUNT_WRITE);
+  while (<CCOUNT_READ>) {
+    $ccount_result = $_;
+    chomp $ccount_result;
+  }
+  close (CCOUNT_READ);
+
+  print "$ccount_result $file\n";
+  $total_sloc += $ccount_result;
+  close (FILE);
+
+  $isinbacktick = 0;
+}
