@@ -105,6 +105,7 @@ EXECUTABLES= \
    generic_count \
    get_sloc \
    get_sloc_details \
+   golang_count \
    haskell_count \
    innosetup_count \
    javascript_count \
